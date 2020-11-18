@@ -1,36 +1,27 @@
 # DCGAN-CelebA-tensorflow
 
-Tensorflow implimentation of the DCGAN model on CelebA
+Tensorflow implimentation of the [DCGAN](https://arxiv.org/abs/1511.06434)(Deep Convolutional Generative Adversarial Networks) model. Insipired by the official tensorflow DCGAN tutorial and the book Generative Deep Learning and its [github repository](https://github.com/davidADSP/GDL_code).
+## Paper Features
+- Replace any pooling layers with strided convolutions (discriminator) and deconvolutions (generator).
+- Use batchnorm in both the generator and the discriminator.
+- Use ReLU activation in generator for all layers except for the output, which uses Tanh.
+- Use LeakyReLU activation in the discriminator for all layers.
 
-## Getting Started
+This implimentation of the DCGAN paper is based on the rules described above. 
+
+## Model Training
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
-### Prerequisites
+### Requirements
 
-What things you need to install the software and how to install them
-
-```
-Give examples
-```
-
-### Installing
-
-A step by step series of examples that tell you how to get a development env running
-
-Say what the step will be
+Install all requirements inculding Python 3.x installed.
 
 ```
-Give the example
+!pip install -r requirements.txt
 ```
 
-And repeat
 
-```
-until finished
-```
-
-End with an example of getting some data out of the system or using it for a little demo
 
 ## Running the tests
 

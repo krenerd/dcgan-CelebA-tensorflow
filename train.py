@@ -44,13 +44,14 @@ def load_model():
         d=model.build_discriminator()
         return g,d
       
-def load_celeba():
-    return tfds.load('celeb_a',data_dir='./data')['train']
+def load_celeba(batch_size):
+    return tfds.load('celeb_a',data_dir='./data')['train'].batch(batch_size)
 
 def make_folder():
-    path='./logs'
-    if not os.path.exists(path):
-        os.mkdir(path)
+    paths=['./logs','./logs/images']
+    for path in paths:
+        if not os.path.exists(path):
+            os.mkdir(path)
     
 def generate_and_save_images(model, epoch, test_input):
   predictions = model(test_input, training=False)
@@ -99,7 +100,7 @@ if __name__ == '__main__':
     make_folder()
     if args.dataset == 'celeba':
         print("Downloading CelebA dataset...")
-        dataset=load_celeba()
+        dataset=load_celeba(args.batch_size)
         print("Downloading Complete")
     
     #Build model

@@ -22,6 +22,7 @@ def build_generator():
     model.add(layers.LeakyReLU())
     
     model.add(layers.Conv2DTranspose(3, 4, strides=(2, 2), padding='same', use_bias=False, activation='tanh'))
+    return model
 
 def build_discriminator():
     model = tf.keras.Sequential()

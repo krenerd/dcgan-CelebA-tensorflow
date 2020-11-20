@@ -8,6 +8,15 @@ import time
 
 import model
 
+def str2bool(v):
+    if isinstance(v, bool):
+       return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 #Define arguments 
 parser = argparse.ArgumentParser(description='Download dataset')
 parser.add_argument("--initial_epoch", type=int,default=0)
@@ -19,16 +28,6 @@ parser.add_argument("--batch_size",type=int,default=64)
 parser.add_argument("--learning_rate_dis",type=float,default=0.000001)
 parser.add_argument("--learning_rate_gen",type=float,default=0.000001)
 
-def str2bool(v):
-    if isinstance(v, bool):
-       return v
-    if v.lower() in ('yes', 'true', 't', 'y', '1'):
-        return True
-    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
-        return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
-        
 def save_model(g,d):
     dir='./logs'
     g.save(os.path.join(dir,'generator.h5'))

@@ -65,7 +65,7 @@ def generate_and_save_images(model, epoch, test_input):
   plt.savefig(f'./logs/images/epoch_{epoch}.png')
   
 @tf.function
-def train_step(images):
+def train_step(images,generator,discriminator):
     cross_entropy = tf.keras.losses.BinaryCrossentropy()
     def discriminator_loss(real_output, fake_output):
         real_loss = cross_entropy(tf.ones_like(real_output), real_output)
@@ -127,7 +127,7 @@ if __name__ == '__main__':
         start = time.time()
     
         for image_batch in progressbar.progressbar(dataset):
-          train_step(image_batch['image'])
+          train_step(image_batch['image'],generator,discriminator)
 
           
         # Produce images for the GIF as we go

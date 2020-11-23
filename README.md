@@ -8,7 +8,10 @@ Tensorflow implimentation of the [DCGAN](https://arxiv.org/abs/1511.06434)(Deep 
 - Use LeakyReLU activation in the discriminator for all layers.
 
 This implimentation of the DCGAN paper is based on the rules described above. 
-
+But the following features varies from the original implimentation(although customizable).
+- Learning rate is 10^-6 instead of 10^-4, the learning rate turned out too big and resulted mode collapse.
+- Instead of the dataset proposed in the paper for facial image generation, the [CelebA dataset](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html) was utilized. 
+- 
 ## Model Training
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.

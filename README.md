@@ -1,6 +1,8 @@
 # DCGAN-CelebA-tensorflow
 
 Tensorflow implimentation of the [DCGAN](https://arxiv.org/abs/1511.06434)(Deep Convolutional Generative Adversarial Networks) model. Insipired by the official tensorflow DCGAN tutorial and the book Generative Deep Learning and its [github repository](https://github.com/davidADSP/GDL_code).
+![](images/Epoch 120.png)
+Image generated at 120 epoch. 
 ## Paper Features
 - Replace any pooling layers with strided convolutions (discriminator) and deconvolutions (generator).
 - Use batchnorm in both the generator and the discriminator.

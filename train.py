@@ -22,7 +22,7 @@ parser = argparse.ArgumentParser(description='Download dataset')
 parser.add_argument("--initial_epoch", type=int,default=0)
 parser.add_argument("--epoch", type=int,default=100)
 parser.add_argument("--load_model", type=str2bool,default=True)
-parser.add_argument("--dataset", type=str, choices=['celeba'])
+parser.add_argument("--dataset", type=str, choices=['celeba','cifar10'])
 parser.add_argument("--generate_image", type=str2bool,default=True)
 parser.add_argument("--batch_size",type=int,default=64)
 parser.add_argument("--learning_rate_dis",type=float,default=0.000001)
@@ -32,20 +32,35 @@ def save_model(g,d):
     dir='./logs'
     g.save(os.path.join(dir,'generator.h5'))
     d.save(os.path.join(dir,'discriminator.h5'))
-def load_model():
+
+def load_model(image_size):
+    i=model.build_input(image_size)
     dir='./logs'
     try:
         g=tf.keras.models.load_model(os.path.join(dir,'generator.h5'))
         d=tf.keras.models.load_model(os.path.join(dir,'discriminator.h5'))
-        return g,d
+        
+        if tuple(d.input.shape)[1:]==image_size and tuple(g.output.shape)[1:]==image_size:
+            print('Loading weights')
+            return i,g,d
+        else:
+            print('Wrong weight file dimensions.')
+            g=model.build_generator(image_size)
+            d=model.build_discriminator(image_size)
+            return i,g,d
     except:
+        #If file doesn't exist
         print('No appropriate weight file...')
-        g=model.build_generator()
-        d=model.build_discriminator()
-        return g,d
+        g=model.build_generator(image_size)
+        d=model.build_discriminator(image_size)
+        return i,g,d
       
 def load_celeba(batch_size):
     return tfds.load('celeb_a',data_dir='./data')['train'].batch(batch_size)
+
+def load_cifar10(batch_size):
+    (train_images, _), (_, _)=tf.keras.datasets.cifar10.load_data()
+    return tf.data.Dataset.from_tensor_slices(train_images).batch(batch_size)
 
 def make_folder():
     paths=['./logs','./logs/images']
@@ -96,24 +111,21 @@ def train_step(images,generator,discriminator):
 if __name__ == '__main__':
     args = parser.parse_args()
     tf.random.set_seed(42)
-    #Load data
+    #Load data/model
     make_folder()
+    
     if args.dataset == 'celeba':
         print("Downloading CelebA dataset...")
         dataset=load_celeba(args.batch_size)
+        if args.load_model:
+            input_pipeline,generator,discriminator=load_model((64,64))
         print("Downloading Complete")
-    
-    #Build model
-    print('Building model...')
-    input_pipeline=model.build_input()
-    
-    #Load model
-    if args.load_model:
-        print('Loading model...')
-        generator,discriminator=load_model()
-    else:
-        generator=model.build_generator()
-        discriminator=model.build_discriminator()
+    elif args.dataset=='cifar10':
+        print("Downloading CIFAR 10 dataset...")
+        dataset=load_cifar10(args.batch_size)
+        if args.load_model:
+            input_pipeline,generator,discriminator=load_model((32,32))
+        print("Downloading Complete")
         
     #Train loop
     tf.random.set_seed(42)

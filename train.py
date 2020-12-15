@@ -23,6 +23,7 @@ parser = argparse.ArgumentParser(description='Download dataset')
 parser.add_argument("--samples_for_eval", type=int,default=1000)
 parser.add_argument("--initial_epoch", type=int,default=0)
 parser.add_argument("--epoch", type=int,default=100)
+parser.add_argument("--evaluate_FID", type=str2bool,default=True)
 parser.add_argument("--load_model", type=str2bool,default=True)
 parser.add_argument("--dataset", type=str, choices=['celeba','cifar10'])
 parser.add_argument("--generate_image", type=str2bool,default=True)
@@ -148,6 +149,10 @@ if __name__ == '__main__':
     num_examples_to_generate = 16
     seed = tf.random.normal([num_examples_to_generate, noise_dim])
     
+    FID_list=[]
+    gen_loss_list=[]
+    dis_lost_list=[]
+
     generator_optimizer = tf.keras.optimizers.Adam(args.learning_rate_gen)
     discriminator_optimizer = tf.keras.optimizers.Adam(args.learning_rate_dis)
 
@@ -171,7 +176,10 @@ if __name__ == '__main__':
             if args.dataset=='celeba':
               image_batch=image_batch['image']
 
-            print('FID Score:',get_FID(generator,image_batch))
+            if args.evaluate_FID:
+                FID=get_FID(generator,image_batch)
+                FID_list.append(FID)
+                print('FID Score:',FID)
             break
     generate_and_save_images(generator,
                                  'final',

@@ -40,7 +40,6 @@ def load_celeba():
 def generate_and_save_images(model,images):
   noise=tf.random.normal([16, 100])
   predictions = model(noise, training=False)
-  print(images)
   fig = plt.figure(figsize=(8,4))
   fig.suptitle('Gen images   True images')
   for i in range(predictions.shape[0]):
@@ -55,7 +54,6 @@ def generate_and_save_images(model,images):
   plt.savefig(f'./final_image.png')
 
 def calculate_fid(act1,act2):
-  print(act1.shape,act2.shape)
   mu1, sigma1 = act1.mean(axis=0), np.cov(act1, rowvar=False)
   mu2, sigma2 = act2.mean(axis=0), np.cov(act2, rowvar=False)
   # calculate sum squared difference between means

@@ -85,6 +85,7 @@ def generate_and_save_images(model, epoch, test_input):
       plt.axis('off')
 
   plt.savefig(f'./logs/images/epoch_{epoch}.png')
+  plt.close()
   
 @tf.function
 def train_step(images,generator,discriminator):
@@ -128,11 +129,13 @@ def plot_losses(args,lists):
     plt.plot(lists['D_loss'],label='D_loss')
     plt.legend()
     plt.savefig(f'./logs/loss_graph.png')
+    plt.close()
 
     if args.evaluate_FID:
         plt.plot(lists['FID'],label='FID')
         plt.legend()
         plt.savefig(f'./logs/FID_graph.png')
+        plt.close()
 
 if __name__ == '__main__':
     args = parser.parse_args()

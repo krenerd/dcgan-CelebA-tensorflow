@@ -123,6 +123,17 @@ def get_FID(gen,images):
     seed = tf.random.normal([num_samples, noise_dim])
     return evaluate.calculate_fid_score(gen.predict(seed),images)
 
+def plot_losses(args,lists):
+    plt.plot(lists['G_loss'],label='G_loss')
+    plt.plot(lists['D_loss'],label='D_loss')
+    plt.legend()
+    plt.savefig(f'./logs/loss_graph.png')
+
+    if args.evaluate_FID:
+        plt.plot(lists['FID'],label='FID')
+        plt.legend()
+        plt.savefig(f'./logs/FID_graph.png')
+
 if __name__ == '__main__':
     args = parser.parse_args()
     tf.random.set_seed(42)
@@ -153,9 +164,7 @@ if __name__ == '__main__':
     num_examples_to_generate = 16
     seed = tf.random.normal([num_examples_to_generate, noise_dim])
 
-    FID_list=[]
-    gen_loss_list=[]
-    dis_loss_list=[]
+    losses={'G_loss'=[],'D_loss'=[],'FID'=[]}
 
     generator_optimizer = tf.keras.optimizers.Adam(args.learning_rate_gen)
     discriminator_optimizer = tf.keras.optimizers.Adam(args.learning_rate_dis)
@@ -167,8 +176,8 @@ if __name__ == '__main__':
           if args.dataset=='celeba':
               image_batch=image_batch['image']
           logs=train_step(image_batch,generator,discriminator)
-          gen_loss_list.append(logs['g_loss'])
-          dis_loss_list.append(logs['d_loss'])
+          losses['G_loss'].append(logs['g_loss'])
+          losses['D_loss'].append(logs['d_loss'])
 
           
         # Produce images for the GIF as we go
@@ -177,28 +186,20 @@ if __name__ == '__main__':
                                      epoch + 1,
                                      seed)
         save_model(generator,discriminator)
+        plot_losses(args,losses)
         print ('Time for epoch {} is {} sec'.format(epoch + 1, time.time()-start))
         for image_batch in dataset.batch(args.samples_for_eval):
             if args.dataset=='celeba':
               image_batch=image_batch['image']
-
+            
             if args.evaluate_FID:
                 FID=get_FID(generator,image_batch)
-                FID_list.append(FID)
+                losses['FID'].append(FID)
                 print('FID Score:',FID)
             break
     generate_and_save_images(generator,
                                  'final',
                                  seed)
-    
-    plt.plot(gen_loss_list,label='G_loss')
-    plt.plot(dis_loss_list,label='D_loss')
-    plt.legend()
-    plt.show()
-
-    plt.plot(FID_list,label='FID')
-    plt.legend()
-    plt.show()
 
     save_model(generator,discriminator)
     print("Training completed...")

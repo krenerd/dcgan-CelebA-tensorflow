@@ -50,7 +50,7 @@ The generate_image.py generates an image based on the generator in ./logs/genera
 The model can be evaluated using the FID score. The FID score implimentation is based on [here](https://machinelearningmastery.com/how-to-implement-the-frechet-inception-distance-fid-from-scratch/). Because the dataset is very large to assess the image quality on the whole dataset, we sample a part of the dataset. 
 
 ```
-!python evaluate.py --dataset=celeba   #Dataset choice: currently only celeba is available
+!python evaluate.py --dataset=celeba   #Dataset choice: celeba or cifar10 is available
                     --metric=fid    #Only FID is available
                     --samples   #Nubmer of samples to generate: default to 1000
 ```
@@ -66,7 +66,7 @@ The model can be trained customly. For more low level training or training on a 
 !python train.py --epoch=100    #Epochs for training, default to 100
                     --initial_epoch=0   #initail epoch, default to 0
                     --load_model=True   #Whether to load pretrained weights in .logs/generator.h5
-                    --dataset=celeba    #Dataset choice: currently only celeba is available
+                    --dataset=celeba    #Dataset choice: celeba or cifar10 is available
                     --generate_image=True   #Whether to generate imadges after every epoch
                     --batch_size=64     #Batch size, default to 64
                     --learning_rate_dis=0.000001    #Discriminator learning rate

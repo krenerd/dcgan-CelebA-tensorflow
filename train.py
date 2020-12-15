@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import time
 
 import model
+import evaluate
 
 def str2bool(v):
     if isinstance(v, bool):
@@ -19,6 +20,7 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 #Define arguments 
 parser = argparse.ArgumentParser(description='Download dataset')
+parser.add_argument("--samples_for_eval", type=int,default=1000)
 parser.add_argument("--initial_epoch", type=int,default=0)
 parser.add_argument("--epoch", type=int,default=100)
 parser.add_argument("--load_model", type=str2bool,default=True)
@@ -33,10 +35,17 @@ def save_model(g,d):
     g.save(os.path.join(dir,'generator.h5'))
     d.save(os.path.join(dir,'discriminator.h5'))
 
-def load_model(image_size):
+def create_model(image_size):
     i=model.build_input(image_size)
+    g=model.build_generator(image_size)
+    d=model.build_discriminator(image_size)
+    return i,g,d
+    
+def load_model(image_size):
+    
     dir='./logs'
     try:
+        i=model.build_input(image_size)
         g=tf.keras.models.load_model(os.path.join(dir,'generator.h5'))
         d=tf.keras.models.load_model(os.path.join(dir,'discriminator.h5'))
         
@@ -45,22 +54,18 @@ def load_model(image_size):
             return i,g,d
         else:
             print('Wrong weight file dimensions.')
-            g=model.build_generator(image_size)
-            d=model.build_discriminator(image_size)
-            return i,g,d
+            return create_model(image_size)
     except:
         #If file doesn't exist
-        print('No appropriate weight file...')
-        g=model.build_generator(image_size)
-        d=model.build_discriminator(image_size)
-        return i,g,d
+        print('No existing weight file...')
+        return create_model(image_size)
       
-def load_celeba(batch_size):
-    return tfds.load('celeb_a',data_dir='./data')['train'].batch(batch_size)
+def load_celeba():
+    return tfds.load('celeb_a',data_dir='./data')['train']
 
-def load_cifar10(batch_size):
+def load_cifar10():
     (train_images, _), (_, _)=tf.keras.datasets.cifar10.load_data()
-    return tf.data.Dataset.from_tensor_slices(train_images).batch(batch_size)
+    return tf.data.Dataset.from_tensor_slices(train_images)
 
 def make_folder():
     paths=['./logs','./logs/images']
@@ -107,7 +112,12 @@ def train_step(images,generator,discriminator):
 
     generator_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
     discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
-    
+
+def get_FID(gen,images):
+    num_samples=images.shape[0]
+    seed = tf.random.normal([num_samples, noise_dim])
+    return evaluate.calculate_fid_score(gen.predict(seed),images)
+
 if __name__ == '__main__':
     args = parser.parse_args()
     tf.random.set_seed(42)
@@ -116,17 +126,22 @@ if __name__ == '__main__':
     
     if args.dataset == 'celeba':
         print("Downloading CelebA dataset...")
-        dataset=load_celeba(args.batch_size)
-        if args.load_model:
-            input_pipeline,generator,discriminator=load_model((64,64))
+        dataset=load_celeba()
+        image_size=(64,64)
         print("Downloading Complete")
     elif args.dataset=='cifar10':
         print("Downloading CIFAR 10 dataset...")
-        dataset=load_cifar10(args.batch_size)
-        if args.load_model:
-            input_pipeline,generator,discriminator=load_model((32,32))
+        dataset=load_cifar10()
+        image_size=(32,32)
         print("Downloading Complete")
-        
+    
+    #Load model
+    if args.load_model:
+        input_pipeline,generator,discriminator=load_model(image_size)
+    else:
+        input_pipeline,generator,discriminator=create_model(image_size)
+
+    
     #Train loop
     tf.random.set_seed(42)
     noise_dim = 100
@@ -139,8 +154,10 @@ if __name__ == '__main__':
     for epoch in range(args.initial_epoch,args.epoch):
         start = time.time()
     
-        for image_batch in progressbar.progressbar(dataset):
-          train_step(image_batch['image'],generator,discriminator)
+        for image_batch in progressbar.progressbar(dataset.batch(args.batch_size)):
+          if args.dataset=='celeba':
+              image_batch=image_batch['image']
+          train_step(image_batch,generator,discriminator)
 
           
         # Produce images for the GIF as we go
@@ -150,6 +167,12 @@ if __name__ == '__main__':
                                      seed)
         save_model(generator,discriminator)
         print ('Time for epoch {} is {} sec'.format(epoch + 1, time.time()-start))
+        for image_batch in dataset.batch(args.samples_for_eval):
+            if args.dataset=='celeba':
+              image_batch=image_batch['image']
+
+            print('FID Score:',get_FID(generator,image_batch))
+            break
     generate_and_save_images(generator,
                                  'final',
                                  seed)

@@ -9,7 +9,7 @@ def build_generator(image_size=(64,64),channels=64):
     model.add(layers.BatchNormalization())
     model.add(layers.LeakyReLU())
 
-    model.add(layers.Reshape((w//8,h//8,channels*4))
+    model.add(layers.Reshape((w//8,h//8,channels*4)))
 
     model.add(layers.Conv2DTranspose(channels*4, 4, strides=(1, 1), padding='same', use_bias=False))
     model.add(layers.BatchNormalization())

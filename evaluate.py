@@ -20,7 +20,8 @@ def str2bool(v):
 #Define arguments 
 parser = argparse.ArgumentParser(description='Download dataset')
 parser.add_argument("--samples", type=int,default=1000)
-parser.add_argument("--metric", type=str,default='fid')
+parser.add_argument("--generate_image", type=str2bool,default=True)
+parser.add_argument("--metric", type=str,default='fid',choices=['fid','is'])
 parser.add_argument("--dataset", type=str, choices=['celeba'])
 
 def load_model():
@@ -85,7 +86,22 @@ def calculate_fid_score(gen_image,true_images):
   act2=inception_model.predict(preprocessed_real)
   
   return calculate_fid(act1,act2)
-    
+
+def calculate_inception_score(images,eps=1E-16):
+    input_pipeline=tf.keras.models.Sequential([tf.keras.layers.experimental.preprocessing.Resizing(299, 299)])
+    inception_model=tf.keras.applications.InceptionV3(include_top=False, pooling='avg', input_shape=(299,299,3))
+
+    images = images.astype('float32')
+    images = input_pipeline.predict(images)
+    p_yx = inception_model.predict(images)
+
+    p_y = np.expand_dims(p_yx.mean(axis=0), 0)
+    kl_d = p_yx * (np.log(p_yx + eps) - np.log(p_y + eps))
+    sum_kl_d = kl_d.sum(axis=1)
+    avg_kl_d = np.mean(sum_kl_d)
+    is_score = np.exp(avg_kl_d)
+    return is_score
+
 if __name__ == '__main__':
     args = parser.parse_args()
     tf.random.set_seed(42)
@@ -100,14 +116,16 @@ if __name__ == '__main__':
     print('Loading model...')
     generator=load_model()
     
-    for batch in dataset.batch(16):
-        truth_image=input_pipeline(batch['image'])
-        break
-    generate_and_save_images(generator,truth_image)
-    #Evaluate with FID
+    if args.generate_image:
+        for batch in dataset.batch(16):
+            truth_image=input_pipeline(batch['image'])
+            break
+        generate_and_save_images(generator,truth_image)
+
+    #Evaluate score
     num_examples_to_generate=args.samples
     noise_dim=100
-    
+        
     for batch in dataset.batch(num_examples_to_generate):
         truth_image=batch['image']
         break
@@ -115,5 +133,9 @@ if __name__ == '__main__':
     noise=tf.random.normal([num_examples_to_generate, noise_dim])
     gen_image=generator(noise,training=False)
     
-    fid=calculate_fid_score(gen_image,truth_image)
-    print('FID Score:',fid)
+    if args.metric=='fid':
+        fid=calculate_fid_score(gen_image,truth_image)
+        print('FID Score:',fid)
+    elif args.metric=='is':
+        inception_s=calculate_inception_score(gen_image)
+        print('Inception Score:',inception_s)

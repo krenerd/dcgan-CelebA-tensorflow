@@ -1,4 +1,3 @@
-
 # DCGAN-CelebA-tensorflow
 
 Tensorflow implimentation of the [DCGAN](https://arxiv.org/abs/1511.06434)(Deep Convolutional Generative Adversarial Networks) model. Insipired by the official tensorflow DCGAN tutorial and the book Generative Deep Learning and its [github repository](https://github.com/davidADSP/GDL_code).
@@ -133,6 +132,10 @@ The generate_image.py generates a matrix of (height,width) image based on the ge
 
 ## Training
 The model can be trained customly. For training on a custom dataset, utilize model.py as a library only.The training logs, generated images and checkpoints all can be found under the ./logs folder. 
+
+The following image describes the FID score curve while training on the cifar10 dataset. 
+
+![](images/FID_graph.png)
 
 ```
 !python train.py --epoch=100    #Epochs for training, default to 100

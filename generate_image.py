@@ -19,7 +19,8 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 #Define arguments 
 parser = argparse.ArgumentParser(description='Download dataset')
-
+parser.add_argument("--width", type=int,default=10)
+parser.add_argument("--height", type=int,default=10)
 def load_model():
     dir='./logs'
     g=tf.keras.models.load_model(os.path.join(dir,'generator.h5'))
@@ -28,10 +29,15 @@ def load_model():
 if __name__ == '__main__':
     args = parser.parse_args()
     generator=load_model()
-    
-    noise=tf.random.normal([1, 100])
+    w,h=args.width,args.height
+
+    noise=tf.random.normal([w*h, 100])
     predictions = generator(noise, training=False)
-    
-    plt.imshow((predictions[0].numpy()*127.5+127.5).astype(int))
-    plt.axis('off')
+
+    fig = plt.figure(figsize=(w*2,h*2))
+    fig.suptitle('Gen images   True images')
+    for i in range(w*h):
+        plt.subplot(h, w, i)
+        plt.imshow((predictions[i, :, :, :].numpy() * 127.5 + 127.5).astype(int))
+        plt.axis('off')
     plt.savefig(f'./generated_image.png')

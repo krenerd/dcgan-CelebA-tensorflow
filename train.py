@@ -28,8 +28,10 @@ parser.add_argument("--load_model", type=str2bool,default=True)
 parser.add_argument("--dataset", type=str, choices=['celeba','cifar10'])
 parser.add_argument("--generate_image", type=str2bool,default=True)
 parser.add_argument("--batch_size",type=int,default=64)
-parser.add_argument("--learning_rate_dis",type=float,default=0.000001)
-parser.add_argument("--learning_rate_gen",type=float,default=0.000001)
+parser.add_argument("--learning_rate_dis",type=float,default=0.0001)
+parser.add_argument("--learning_rate_gen",type=float,default=0.0001)
+
+parser.add_argument("--feature_matching", type=str2bool,default=True)
 
 def save_model(g,d):
     dir='./logs'
@@ -88,7 +90,7 @@ def generate_and_save_images(model, epoch, test_input):
   plt.close()
   
 @tf.function
-def train_step(images,generator,discriminator):
+def train_step(args,images,generator,discriminator):
     cross_entropy = tf.keras.losses.BinaryCrossentropy()
     def discriminator_loss(real_output, fake_output):
         real_loss = cross_entropy(tf.ones_like(real_output), real_output)
@@ -100,17 +102,33 @@ def train_step(images,generator,discriminator):
     
     logs={}
     noise = tf.random.normal([args.batch_size, noise_dim])
+    #Define feature matching model
+    if args.feature_matching:
+        feature_discriminator=tf.keras.models.Sequential(discriminator.layers[:-2])
+        final_model=tf.keras.models.Sequential(discriminator.layers[-2:])
 
     with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
-      generated_images = generator(noise, training=True)
+        generated_images = generator(noise, training=True)
+        
+        #Forward propagate through GAN
+        if args.feature_matching:
+            feature_real=feature_discriminator(input_pipeline(images), training=True)
+            feature_fake=feature_discriminator(generated_images, training=True)
 
-      real_output = discriminator(input_pipeline(images), training=True)
-      fake_output = discriminator(generated_images, training=True)
+            real_output = final_model(feature_real, training=True)
+            fake_output = final_model(feature_fake, training=True)
+        else: 
+            real_output = discriminator(input_pipeline(images), training=True)
+            fake_output = discriminator(generated_images, training=True)
 
-      gen_loss = generator_loss(fake_output)
-      disc_loss = discriminator_loss(real_output, fake_output)
-      logs['g_loss']=gen_loss
-      logs['d_loss']=disc_loss
+        #Calculate loss
+        if args.feature_matching:
+            gen_loss=tf.keras.losses.MSE(feature_fake.mean(axis=0),feature_real.mean(axis=0))
+        else:
+            gen_loss = generator_loss(fake_output)
+        disc_loss = discriminator_loss(real_output, fake_output)
+        logs['g_loss']=gen_loss[-1]
+        logs['d_loss']=disc_loss[-1]
 
     gradients_of_generator = gen_tape.gradient(gen_loss, generator.trainable_variables)
     gradients_of_discriminator = disc_tape.gradient(disc_loss, discriminator.trainable_variables)
@@ -178,7 +196,7 @@ if __name__ == '__main__':
         for image_batch in progressbar.progressbar(dataset.batch(args.batch_size)):
           if args.dataset=='celeba':
               image_batch=image_batch['image']
-          logs=train_step(image_batch,generator,discriminator)
+          logs=train_step(args,image_batch,generator,discriminator)
           losses['G_loss'].append(logs['g_loss'])
           losses['D_loss'].append(logs['d_loss'])
 

@@ -101,29 +101,15 @@ def train_step(args,images,generator,discriminator):
     logs={}
     noise = tf.random.normal([args.batch_size, noise_dim])
     #Define feature matching model
-    if args.feature_matching:
-        feature_discriminator=tf.keras.models.Sequential(discriminator.layers[:-2])
-        final_model=tf.keras.models.Sequential(discriminator.layers[-2:])
+    
 
     with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
         generated_images = generator(noise, training=True)
-
-        #Forward propagate through GAN
-        if args.feature_matching:
-            feature_real=feature_discriminator(input_pipeline(images), training=True)
-            feature_fake=feature_discriminator(generated_images, training=True)
-
-            real_output = final_model(feature_real, training=True)
-            fake_output = final_model(feature_fake, training=True)
-        else:
-            real_output = discriminator(input_pipeline(images), training=True)
-            fake_output = discriminator(generated_images, training=True)
+        real_output = discriminator(input_pipeline(images), training=True)
+        fake_output = discriminator(generated_images, training=True)
 
         #Calculate loss
-        if args.feature_matching:
-            gen_loss=tf.keras.losses.MSE(feature_fake.mean(axis=0),feature_real.mean(axis=0))
-        else:
-            gen_loss = generator_loss(fake_output)
+        gen_loss = generator_loss(fake_output)
         disc_loss = discriminator_loss(real_output, fake_output)
         logs['g_loss']=gen_loss[-1]
         logs['d_loss']=disc_loss[-1]

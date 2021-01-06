@@ -28,8 +28,8 @@ parser.add_argument("--load_model", type=str2bool,default=True)
 parser.add_argument("--dataset", type=str, choices=['celeba','cifar10'])
 parser.add_argument("--generate_image", type=str2bool,default=True)
 parser.add_argument("--batch_size",type=int,default=64)
-parser.add_argument("--learning_rate_dis",type=float,default=0.000001)
-parser.add_argument("--learning_rate_gen",type=float,default=0.000001)
+parser.add_argument("--learning_rate_dis",type=float,default=0.0001)
+parser.add_argument("--learning_rate_gen",type=float,default=0.0001)
 
 def save_model(g,d):
     dir='./logs'

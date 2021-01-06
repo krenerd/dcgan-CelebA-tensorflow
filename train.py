@@ -88,7 +88,7 @@ def generate_and_save_images(model, epoch, test_input):
   plt.close()
 
 @tf.function
-def train_step(args,images,generator,discriminator):
+def train_step(images):
     cross_entropy = tf.keras.losses.BinaryCrossentropy()
     def discriminator_loss(real_output, fake_output):
         real_loss = cross_entropy(tf.ones_like(real_output), real_output)
@@ -180,7 +180,7 @@ if __name__ == '__main__':
         for image_batch in progressbar.progressbar(dataset.batch(args.batch_size)):
           if args.dataset=='celeba':
               image_batch=image_batch['image']
-          logs=train_step(args,image_batch,generator,discriminator)
+          logs=train_step(image_batch)
           losses['G_loss'].append(logs['g_loss'])
           losses['D_loss'].append(logs['d_loss'])
 

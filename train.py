@@ -111,8 +111,8 @@ def train_step(images):
         #Calculate loss
         gen_loss = generator_loss(fake_output)
         disc_loss = discriminator_loss(real_output, fake_output)
-        logs['g_loss']=gen_loss[-1]
-        logs['d_loss']=disc_loss[-1]
+        logs['g_loss']=gen_loss
+        logs['d_loss']=disc_loss
 
     gradients_of_generator = gen_tape.gradient(gen_loss, generator.trainable_variables)
     gradients_of_discriminator = disc_tape.gradient(disc_loss, discriminator.trainable_variables)

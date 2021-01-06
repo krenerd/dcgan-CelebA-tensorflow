@@ -78,12 +78,14 @@ The model can be evaluated using the FID score and Inception Score. The FID scor
 DCGAN Model trained at the celeba dataset for 120 epoch with batch size=64, lr=1e-06
 - FID Score: 205.86163128415788
 - IS Score: 2.5864406
+
 Random Initialized Model
 - FID Score: 510
 
 DCGAN Model trained at the cifar10 dataset for 100 epoch with batch size=16, lr=1e-04
 - FID Score: 98.4815200644252
 - IS Score: 5.435828
+
 Random Initialized Model
 - FID Score: 451.4736
 - IS Score: 1.0074695

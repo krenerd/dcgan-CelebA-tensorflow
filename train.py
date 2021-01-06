@@ -50,7 +50,7 @@ def load_model(image_size):
         g=tf.keras.models.load_model(os.path.join(dir,'generator.h5'))
         d=tf.keras.models.load_model(os.path.join(dir,'discriminator.h5'))
         
-        if tuple(d.input.shape)[1:-2]==image_size and tuple(g.output.shape)[1:-2]==image_size:
+        if tuple(d.input.shape)[1:-1]==image_size and tuple(g.output.shape)[1:-1]==image_size:
             print('Loading weights')
             return i,g,d
         else:

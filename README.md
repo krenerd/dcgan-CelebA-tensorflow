@@ -37,21 +37,42 @@ Download the data using download_data.py. This execution will download the celeb
 !python download_data.py --dataset=celeba   #Dataset choice: currently only celeba is available
 ```
 
+
 ## Inference
 
-The generate_image.py generates an image based on the generator in ./logs/generator.h5. The created image is saved as a png image in ./generated_image.png.
+The generate_image.py generates a matrix of (height,width) image based on the generator in ./logs/generator.h5. The created image is saved as a png image named generated_image.png.
 
 ```
-!python generate_image.py
+!python generate_image.py --width=10	#Number of columns to generate
+						  --height=10	#Number of rows to generate
+```
+
+## Training
+The model can be trained customly. For training on a custom dataset, utilize model.py as a library only.The training logs, generated images and checkpoints all can be found under the ./logs folder. 
+
+The following image describes the FID score curve while training on the cifar10 dataset. 
+
+![](images/FID_graph.png)
+
+```
+!python train.py --epoch=100    #Epochs for training, default to 100
+                    --initial_epoch=0   #initail epoch, default to 0
+                    --load_model=True   #Whether to load pretrained weights in .logs/generator.h5
+                    --evaluate_FID=True		#Evaluate FID after every epoch
+                    --dataset=celeba    #Dataset choice: celeba or cifar10 is available
+                    --generate_image=True   #Whether to generate imadges after every epoch
+                    --batch_size=64     #Batch size, default to 64
+                    --learning_rate_dis=0.000001    #Discriminator learning rate
+                    --learning_rate_gen=0.000001    #Generator learning rate
 ```
 
 ## Evaluation with FID score
 
-The model can be evaluated using the FID score. The FID score implimentation is based on [here](https://machinelearningmastery.com/how-to-implement-the-frechet-inception-distance-fid-from-scratch/). Because the dataset is very large to assess the image quality on the whole dataset, we sample a part of the dataset. 
+The model can be evaluated using the FID score and Inception Score. The FID score implimentation is based on [here](https://machinelearningmastery.com/how-to-implement-the-frechet-inception-distance-fid-from-scratch/). Because the dataset is very large to assess the image quality on the whole dataset, we sample only a portion of the dataset. 
 
 ```
 !python evaluate.py --dataset=celeba   #Dataset choice: celeba or cifar10 is available
-                    --metric=fid    #Only FID is available
+                    --metric=fid    #Only FID and IS(Inception Score) is available
                     --samples   #Nubmer of samples to generate: default to 1000
 ```
 DCGAN Model trained at the celeba dataset for 120 epoch with batch size=64, lr=1e-06
@@ -60,24 +81,9 @@ DCGAN Model trained at the celeba dataset for 120 epoch with batch size=64, lr=1
 Random Initialized Model
 - FID Score: 510
 
-DCGAN Model trained at the cifar10 dataset for 150 epoch with batch size=16, lr=1e-06
-- FID Score: 205.86163128415788
+DCGAN Model trained at the cifar10 dataset for 100 epoch with batch size=16, lr=1e-04
+- FID Score: 98.4815200644252
 
 Random Initialized Model
 - FID Score: 451.4736
-
-## Training
-The model can be trained customly. For more low level training or training on a custom dataset, utilize model.py as a library only.The training program logs images and checkpoints under the ./logs folder. 
-
-```
-!python train.py --epoch=100    #Epochs for training, default to 100
-                    --initial_epoch=0   #initail epoch, default to 0
-                    --load_model=True   #Whether to load pretrained weights in .logs/generator.h5
-                    --dataset=celeba    #Dataset choice: celeba or cifar10 is available
-                    --generate_image=True   #Whether to generate imadges after every epoch
-                    --batch_size=64     #Batch size, default to 64
-                    --learning_rate_dis=0.000001    #Discriminator learning rate
-                    --learning_rate_gen=0.000001    #Generator learning rate
-```
-
 
